@@ -9,20 +9,24 @@
 <body>
 
   <nav class="topbar">
-    <h1> Welcome to Mamta's pikaTalk</h1>
+    <h1>Welcome</h1>
     <div class="brand">
-     <img class="logo" src="logo.png" alt="logo" />
-
+      <img class="logo" src="logo.png" alt="logo" />
       <h1>pikaTalk</h1>
     </div>
-
     <div class="controls">
       <button id="themeToggle" class="icon-btn">🌙</button>
       <div id="onlineCount" class="online-count">0 online</div>
     </div>
   </nav>
 
-  <main class="chat-layout">
+  <!-- Join screen -->
+  <div id="joinScreen" class="join-screen">
+    <input type="text" id="usernameInput" placeholder="Enter your name" />
+    <button id="joinBtn">Join Chat</button>
+  </div>
+
+  <main class="chat-layout" style="display:none;">
     <aside class="sidebar">
       <h3>Online</h3>
       <ul id="usersList" class="users-list"></ul>
@@ -30,9 +34,7 @@
 
     <section class="chat-panel">
       <div id="message-container" class="container"></div>
-
       <div id="typingIndicator" class="typing-indicator" hidden></div>
-
       <div class="send">
         <form id="send-container" autocomplete="off">
           <input id="messageInp" type="text" placeholder="Type a message..." />
@@ -45,9 +47,83 @@
   <!-- sound -->
   <audio id="notifySound" src="frontend/audio.wav" preload="auto"></audio>
 
+  <!-- socket.io client from Render -->
+  <script src="https://nodeserver-app.onrender.com/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io("https://nodeserver-app.onrender.com");
 
-  <!-- socket.io client -->
-  <script src="http://localhost:8000/socket.io/socket.io.js"></script>
-  <script src="client.js"></script>
+    const joinScreen = document.getElementById("joinScreen");
+    const usernameInput = document.getElementById("usernameInput");
+    const joinBtn = document.getElementById("joinBtn");
+    const chatLayout = document.querySelector(".chat-layout");
+    const messageContainer = document.getElementById("message-container");
+    const usersList = document.getElementById("usersList");
+    const typingIndicator = document.getElementById("typingIndicator");
+    const sendContainer = document.getElementById("send-container");
+    const messageInp = document.getElementById("messageInp");
+
+    let username = "";
+
+    // Join chat
+    joinBtn.addEventListener("click", () => {
+      username = usernameInput.value.trim();
+      if (!username) return alert("Enter your name!");
+
+      joinScreen.style.display = "none";
+      chatLayout.style.display = "flex";
+
+      socket.emit("new-user-joined", username);
+    });
+
+    // Send message
+    sendContainer.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const message = messageInp.value.trim();
+      if (!message) return;
+
+      // show own message
+      const div = document.createElement("div");
+      div.textContent = `You: ${message}`;
+      div.classList.add("message");
+      messageContainer.appendChild(div);
+
+      socket.emit("send", message);
+      messageInp.value = "";
+    });
+
+    // Receive message
+    socket.on("receive", (msg) => {
+      const div = document.createElement("div");
+      div.textContent = `${msg.name}: ${msg.message}`;
+      div.classList.add("message");
+      messageContainer.appendChild(div);
+    });
+
+    // Update users list
+    socket.on("update-user-list", (users) => {
+      usersList.innerHTML = "";
+      users.forEach((user) => {
+        const li = document.createElement("li");
+        li.textContent = user;
+        usersList.appendChild(li);
+      });
+      document.getElementById("onlineCount").textContent = `${users.length} online`;
+    });
+
+    // Typing indicator
+    messageInp.addEventListener("input", () => {
+      if (messageInp.value) socket.emit("typing");
+      else socket.emit("stop-typing");
+    });
+
+    socket.on("typing", (name) => {
+      typingIndicator.textContent = `${name} is typing...`;
+      typingIndicator.hidden = false;
+    });
+
+    socket.on("stop-typing", () => {
+      typingIndicator.hidden = true;
+    });
+  </script>
 </body>
 </html>
