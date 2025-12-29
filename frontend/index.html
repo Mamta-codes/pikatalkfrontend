@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>pikaTalk</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav class="topbar">
+    <h1> Welcome to Mamta's pikaTalk</h1>
+    <div class="brand">
+     <img class="logo" src="logo.png" alt="logo" />
+
+      <h1>pikaTalk</h1>
+    </div>
+
+    <div class="controls">
+      <button id="themeToggle" class="icon-btn">🌙</button>
+      <div id="onlineCount" class="online-count">0 online</div>
+    </div>
+  </nav>
+
+  <main class="chat-layout">
+    <aside class="sidebar">
+      <h3>Online</h3>
+      <ul id="usersList" class="users-list"></ul>
+    </aside>
+
+    <section class="chat-panel">
+      <div id="message-container" class="container"></div>
+
+      <div id="typingIndicator" class="typing-indicator" hidden></div>
+
+      <div class="send">
+        <form id="send-container" autocomplete="off">
+          <input id="messageInp" type="text" placeholder="Type a message..." />
+          <button class="btn" type="submit">Send</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- sound -->
+  <audio id="notifySound" src="frontend/audio.wav" preload="auto"></audio>
+
+
+  <!-- socket.io client -->
+  <script src="http://localhost:8000/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
